@@ -8,19 +8,29 @@ class Model:
     '''
     rate_mat = np.empty(1)      # Instantaneous rate matrix
     base_freqs = np.ones(4)/4   # Default initial base frequency is 'all equal'
-    tv_ratio = 1                # Transition/transversion rate ratio
+    rps = {}                    # Dictionary of rate parameters
     name = 'blank'
 
-    def __init__(self, nm: str, tr=None) -> None:
+    def __init__(self, nm: str, **kwargs: float) -> None:
         '''
         Builds the model container.
 
         ### Parameters
         nm: The name of the model
-        tr: Transition/transversion rate ratio
+        (kwargs: any relevant rate parameters - optional)
         '''
         self.name = nm
-        if tr is not None: self.tv_ratio = tr
+        self.rps = kwargs
+    
+    def addRM(self, rm: np.ndarray) -> None:
+        '''
+        Adapts the input to a rate matrix.
+
+        ### Parameters
+        rm: The rate matrix (important: the diagonal values should be negative!)
+        '''
+        self.rate_mat = rm
+        for i in range(4): self.rate_mat[i,i] = -rm[i,np.where(rm[i] > 0)[0]].sum()
     
     def __str__(self) -> str:
         return self.name

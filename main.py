@@ -4,12 +4,15 @@ from sequence import *
 from lib import *
 import matplotlib.pyplot as plt
 
-if __name__ == '__main__':
-    ## User-specified parameters
-    seq_l = 1000    # Length of nucleotide base sequence
-    mdl = JC69      # Model to use (refer to lib.py)
-    t_max = 10      # Max time
+def run(mdl: Model=JC69, seq_l: int=1000, t_max: int=10):
+    '''
+    Run the simulation and plot the results.
 
+    ### Parameters
+    mdl: The model to use (refer to lib.py).
+    seq_l: The length of the nucleotide base sequence.
+    t_max: The maximum amount of time to use in the simulation.
+    '''
     ## Simulation
     seq = Sequence(seq_l, mdl)
     seq.gen([1, 0, 0, 0]) # To better observe evolution towards equilibrium
@@ -26,4 +29,8 @@ if __name__ == '__main__':
     plt.legend()
     plt.xlabel(r'$t$')
     plt.ylabel('Total base count')
+    plt.savefig(f'seqev_{mdl}.png')
     plt.show()
+
+if __name__ == '__main__':
+    run(K80)
