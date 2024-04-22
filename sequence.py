@@ -17,23 +17,26 @@ class Sequence:
     base_freqs = np.empty(4)    # Initial base frequencies
     rate_mat = np.empty(1)      # Instantaneous rate matrix
     seq = []                    # Base sequence (as a list)
+    loc_t = 0                   # Tracks total simulation time (local)
 
-    def __init__(self, sl: int=None, mdl: Model=None, sq: list=None) -> None:
+    def __init__(self, sl: int=None, mdl: Model=None, sq: list=[], lt: float=0) -> None:
         '''
         Builds the Sequence object.
 
         ### Parameters
         sl: Sequence length
         mdl: Substitution model
-        sq: (When creating a non-simulation sequence) List of bases
+        sq: List of bases
+        lt: Total local simulation time
         '''
-        self.seq = sq
+        self.loc_t = lt
         if sl is not None: self.seq_l = sl
         if mdl is not None:
             self.model = mdl
             self.base_freqs = mdl.base_freqs
             self.rate_mat = mdl.rate_mat
-            self.gen(mdl.base_freqs)
+            if len(sq): self.seq = sq
+            else: self.gen(mdl.base_freqs)
     
     def gen(self, bfs: list) -> None:
         '''
@@ -56,14 +59,24 @@ class Sequence:
     
     def sim(self, t: float) -> 'Sequence':
         '''
-        Simulates the evolution of the sequence at a given time.
-        (Note: The object this method returns contains only the sequence, nothing else - unsuitable for further simulation)
+        Simulates the evolution of the sequence over a given time period.
 
         ### Parameters
-        t: The length of time passed since the start
+        t: The length of the time period
         '''
         tpm = self.trans_ps(t)
-        return Sequence(sq=[np.random.choice(ACGT, p=tpm[b]) for b in self.seq])
+        seq = [np.random.choice(ACGT, p=tpm[b]) for b in self.seq]
+        return Sequence(sl=self.seq_l, mdl=self.model, sq=seq, lt=self.loc_t+t)
+    
+    def genDist(self, seq2: 'Sequence') -> float:
+        '''
+        Calculates observed distance (p-distance) between the current and original sequences. Serves as a measure of genetic drift.
+        '''
+        if self.seq_l != seq2.seq_l: print('Sequences are of different lengths!')
+        return sum([self.seq[i] != seq2.seq[i] for i in range(self.seq_l)])/self.seq_l
+    
+    def copy(self) -> 'Sequence':
+        return Sequence(sl=self.seq_l, mdl=self.model, sq=self.seq, lt=self.loc_t)
     
     @property
     def totals(self) -> list:
@@ -71,7 +84,7 @@ class Sequence:
         A 4-element list describing the current macrostate of the sequence. (i.e., the total #s of each nucleotide)
         '''
         return [self.seq.count(b) for b in ACGT]
-    
+
     def printTotals(self) -> None:
         '''
         Outputs the current macrostate (nucleotide #s) to the console.
