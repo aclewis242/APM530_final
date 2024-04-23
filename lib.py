@@ -5,23 +5,52 @@ import numpy as np
 
 N = -1 # placeholder value
 
-mu = 1.0
+m = 1.0
 JC69 = Model('JC69') # Jukes & Cantor 1969
 JC69.addRM(np.array([[N, 1, 1, 1],
                      [1, N, 1, 1],
                      [1, 1, N, 1],
-                     [1, 1, 1, N]])*(mu/4))
+                     [1, 1, 1, N]])*m)
 
 k = 2.0 # Transition-transversion ratio
 K80 = Model('K80') # Kimura 1980
-K80.addRM(np.array([[N, k, 1, 1],
-                    [k, N, 1, 1],
-                    [1, 1, N, k],
-                    [1, 1, k, N]]))
+K80.addRM(np.array([[N, 1, k, 1],
+                    [1, N, 1, k],
+                    [k, 1, N, 1],
+                    [1, k, 1, N]])*m)
 
-models = [JC69, K80]
+bfs = {A: 0.1, C: 0.5, G: 0.2} # Base frequencies (T implicit, as they must sum to 1)
+F81 = Model('F81', bfs) # Felsenstein 1981
+F81.addRM(JC69.rate_mat*4)
+
+HKY85 = Model('HKY85', bfs) # Hasegawa, Kishino, Yano 1985
+HKY85.addRM(K80.rate_mat*4)
+
+g = 0.5 # pyrimidine/purine transition ratio
+t = 2*k/(1+g) # net purine coefficient (g*t = pyrimidine)
+TN93 = Model('TN93', bfs) # Tamura & Nei 1993
+TN93.addRM(np.array([[N, 1, t, 1],
+                     [1, N, 1, t*g],
+                     [t, 1, N, 1],
+                     [1, t*g, 1, N]])*m)
+
+[a, b, c, d, e, f] = [0.7, 1.3, 1.1, 0.9, 1.5, 0.6] # coefficients for GTR
+GTR = Model('GTR', bfs) # Tavaré 1986
+GTR.addRM(np.array([[N, a, b, c],
+                    [a, N, d, e],
+                    [b, d, N, f],
+                    [c, e, f, N]]))
+
+models = [JC69, K80, F81, HKY85, TN93, GTR]
 
 def simShell(seq: Sequence, tmax: float):
+    '''
+    The core of all simulation methods. Models the evolution of two sequences from the given ancestral sequence over time.
+
+    ### Parameters
+    seq: The initial ancestral sequence
+    tmax: Maximum simulation time
+    '''
     seq1 = seq
     seq2 = seq.copy()
     all_data = {seq1: [seq1], seq2: [seq2]}
@@ -36,6 +65,17 @@ def simShell(seq: Sequence, tmax: float):
     return all_data
 
 def allGenDists(data: dict[Sequence, list[Sequence]]):
+    '''
+    Takes the two sequences produced by the simulation shell and turns them into a set of genetic distances.
+
+    ### Parameters
+    data: A dict linking the two sequence objects to the lists of them over time.
+    (Note: This should almost always be the output of simShell()!)
+
+    ### Returns
+    ts: The list of times visited by both simulations
+    ds: The genetic distance at each time
+    '''
     cloned_data = {k: data[k].copy() for k in data.keys()}
     d_keys = list(data.keys())
     for i in [0,1]:
