@@ -23,7 +23,7 @@ def runGDs(mdl: Model, seq_l: int=50, t_max: float=5, to_show: bool=True):
 
     ## Plot results
     plt.plot(ts, ds)
-    plt.title(rf'{mdl.name}: genetic drift over time')
+    plt.title(rf'{mdl.name}: genetic distance over time')
     plt.xlabel(r'$t$')
     plt.ylabel(r'$d$')
     plt.savefig(f'gendrift_{mdl.name}.png')
@@ -45,7 +45,7 @@ def runGDAll(seq_l: int=50, t_max: float=5, to_show: bool=True):
     all_dat = {m: runGDs(m, seq_l, t_max, to_show=False) for m in models}
 
     [plt.plot(all_dat[m][0], all_dat[m][1], label=m) for m in models]
-    plt.title(r'All models: genetic drift over time')
+    plt.title(r'All models: genetic distance over time')
     plt.xlabel(r'$t$')
     plt.ylabel(r'$d$')
     plt.legend()
@@ -71,7 +71,7 @@ def runGDAvgs(num_samp: int=10):
         all_means.append([np.mean(ds), np.std(ds)])
     
     [plt.bar(str(models[i]), all_means[i][0], yerr=all_means[i][1]) for i in range(len(all_means))]
-    plt.title(r'Average genetic drifts')
+    plt.title(r'Average genetic distances')
     plt.xlabel(r'Model')
     plt.ylabel(r'$d_{avg}$')
     plt.savefig(f'avggd_{num_samp}s.png')
@@ -105,10 +105,10 @@ if __name__ == '__main__':
 
     ### Individual model simulations
     mth = runBCs # runGDs: genetic drift // runBCs: base counts
-    [mth(m) for m in models] # *
+    # [mth(m) for m in models] # *
 
     ### Compiled simulation results
-    # runGDAll() # *
+    runGDAll() # *
 
     ### Simulation statistics
-    # runGDAvgs(11) # *
+    runGDAvgs(20) # *
