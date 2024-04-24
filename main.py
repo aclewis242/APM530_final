@@ -91,11 +91,11 @@ def runBCs(mdl: Model, seq_l: int=50, t_max: float=5, to_show: bool=True):
     all_seqs = simShell(seq, t_max)[seq]
     all_tots = [s.totals for s in all_seqs]
     all_ts = [s.loc_t for s in all_seqs]
-    
+
     [plt.plot(all_ts, np.array(all_tots)[:,b], label=ACGT_str[b]) for b in ACGT]
     plt.title(rf'{mdl}: nucleotide base counts')
-    plt.xlabel(r'Base')
-    plt.ylabel(r'Count')
+    plt.xlabel(r'Time')
+    plt.ylabel(r'Base count')
     plt.legend()
     plt.savefig(f'nbcs_{mdl}.png')
     if to_show: plt.show()
@@ -104,11 +104,11 @@ if __name__ == '__main__':
     ### Un/comment whichever line is of interest. The ones that run simulations are marked with *s.
 
     ### Individual model simulations
-    mth = runGDs # runGDs: genetic drift // runBCs: base counts
-    # [mth(m) for m in models] # *
+    mth = runBCs # runGDs: genetic drift // runBCs: base counts
+    [mth(m) for m in models] # *
 
     ### Compiled simulation results
     # runGDAll() # *
 
     ### Simulation statistics
-    runGDAvgs() # *
+    # runGDAvgs(11) # *

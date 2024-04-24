@@ -90,5 +90,7 @@ def allGenDists(data: dict[Sequence, list[Sequence]]):
         cloned_data[d_keys[i-1]].sort(key=lambda x: x.loc_t)
     seq1s, seq2s = cloned_data.values()
     ts = [s.loc_t for s in seq1s]
-    ds = [seq1s[i].genDist(seq2s[i]) for i in range(len(seq1s))]
+    ps = [seq1s[i].genDist(seq2s[i]) for i in range(len(seq1s))]
+    ds = [ps[0]]
+    [ds.append(ps[i]+ds[i-1]) for i in range(1,len(ps))]
     return ts, ds
